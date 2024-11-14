@@ -93,7 +93,7 @@
   
   @layer base {
   * {
-    @apply border-border;
+    @apply border-borderPrimary;
     }
   body {
     @apply bg-background text-foreground;
