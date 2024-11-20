@@ -12,6 +12,7 @@ import { usePathname } from "next/navigation";
 import { MdAttachMoney } from "react-icons/md";
 import { useTheme } from "next-themes";
 import Spinner from "./Spinner";
+import { Switch } from "~/components/ui/switch";
 
 const useWindowDimensions = () => {
   const isClient = typeof window === "object";
@@ -89,6 +90,10 @@ const NavBar = () => {
   const [small, setSmall] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
   const [isOpen5, setIsOpen5] = useState(false);
+
+  const handleThemeChange = (value: boolean) => {
+    setTheme(value ? "dark" : "light");
+  };
   const toggleNavbar5 = () => {
     setIsOpen5(!isOpen5);
   };
@@ -126,7 +131,7 @@ const NavBar = () => {
 
   if (!isClient)
     return (
-      <div className="absolute z-[9999] top-0 left-0 h-screen w-full flex items-center justify-center bg-bgPrimary">
+      <div className="absolute left-0 top-0 z-[9999] flex h-screen w-full items-center justify-center bg-bgPrimary">
         <Spinner />
       </div>
     );
@@ -178,18 +183,11 @@ const NavBar = () => {
                 <div className="hidden sm:block"></div>
 
                 <div className="flex flex-row items-center justify-end gap-2">
-                  {true && (
-                    <>
-                      <button
-                        className="mx-1 rounded-full p-3 text-textPrimary hover:bg-bgSecondary"
-                        onClick={() =>
-                          setTheme(theme === "dark" ? "light" : "dark")
-                        }
-                      >
-                        {theme === "dark" ? <FiMoon /> : <FiSun />}
-                      </button>
-                    </>
-                  )}
+                  <Switch
+                    checked={theme === "dark"} 
+                    onCheckedChange={handleThemeChange} 
+                    className="mx-1" 
+                  />
                   <Link
                     href="/notifies"
                     className="inline-flex h-[2.375rem] w-[2.375rem] items-center justify-center gap-x-2 rounded-full text-sm font-semibold text-textPrimary hover:bg-bgSecondary disabled:pointer-events-none disabled:opacity-50"
