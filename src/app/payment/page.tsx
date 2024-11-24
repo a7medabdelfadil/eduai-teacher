@@ -1,15 +1,13 @@
 "use client";
-import { ChangeEvent, useState } from "react";
+import { type ChangeEvent, useState } from "react";
 import Container from "~/_components/Container";
 import { Text } from "~/_components/Text";
 import * as RadioGroup from "@radix-ui/react-radio-group";
-import { FaWallet, FaMoneyBillWave, FaCheck } from "react-icons/fa";
+import { FaWallet, FaMoneyBillWave } from "react-icons/fa";
 import { AiOutlineCloudUpload, AiOutlineCreditCard } from "react-icons/ai";
 import Image from "next/image";
 import Input from "~/_components/Input";
 import Button from "~/_components/Button";
-import { BsFillCloudUploadFill } from "react-icons/bs";
-import { FiCamera } from "react-icons/fi";
 
 const paymentMethods = [
   {
