@@ -3,7 +3,7 @@ import { useState } from "react";
 import Container from "~/_components/Container";
 import { Text } from "~/_components/Text";
 import * as RadioGroup from "@radix-ui/react-radio-group";
-import { FaWallet, FaMoneyBillWave } from "react-icons/fa";
+import { FaWallet, FaMoneyBillWave, FaCheck } from "react-icons/fa";
 import { AiOutlineCreditCard } from "react-icons/ai";
 import Image from "next/image";
 import Input from "~/_components/Input";
@@ -47,22 +47,76 @@ const wallets = [
   },
 ];
 
+function SuccessModal({
+  isOpen,
+  onClose,
+}: {
+  isOpen: boolean;
+  onClose: () => void;
+}) {
+  if (!isOpen) return null;
+
+  return (
+    <div className="fixed inset-0 z-[1000] flex items-center justify-center bg-black bg-opacity-50">
+      <div className="w-full max-w-md rounded-lg border border-borderPrimary bg-bgPrimary p-6 shadow-lg">
+        <div className="flex flex-col items-center">
+          <div>
+            <Image
+              src={"/images/succes.png"}
+              alt="Success"
+              width={100}
+              height={100}
+              className="mx-auto"
+            />
+          </div>
+          <Text font={"bold"} size={"2xl"} className="mt-4">
+            Success!
+          </Text>
+          <Text
+            font={"medium"}
+            color={"gray"}
+            size={"xl"}
+            className="mt-2 text-center"
+          >
+            Receipt has been sent successfully.
+          </Text>
+          <Button className="mt-6" onClick={onClose}>
+            Ok
+          </Button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function Payment() {
   // State to track the selected payment method
   const [selectedPayment, setSelectedPayment] = useState<string>("bank-card");
   const [selectedVisa, setSelectedVisa] = useState<string>("visa-1");
   const [isAddingCard, setIsAddingCard] = useState<boolean>(false); // New state for adding a card
   const [isChecked, setIsChecked] = useState(false);
+  const [isModalOpen, setModalOpen] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
+
+  const handlePay = () => {
+    setModalOpen(true); // Open the modal
+  };
+
+  const handleCloseModal = () => {
+    setModalOpen(false); // Close the modal
+  };
 
   // Handle value change when a radio button is selected
   const handlePaymentChange = (value: string) => {
     setSelectedPayment(value);
     setIsAddingCard(false);
+    setShowConfirm(false);
   };
 
   const handleVisaChange = (value: string) => {
     setSelectedVisa(value);
     setIsAddingCard(false);
+    setShowConfirm(false);
   };
 
   const handleAddCardClick = () => {
@@ -71,6 +125,10 @@ function Payment() {
 
   const handleCheckboxChange = () => {
     setIsChecked(!isChecked);
+  };
+
+  const handleShowConfirm = () => {
+    setShowConfirm(true); // Show the "Adding Card" UI
   };
 
   return (
@@ -345,6 +403,50 @@ function Payment() {
               <Button>Continue</Button>
             </div>
           </div>
+        ) : showConfirm ? (
+          <div className="mt-8 w-full overflow-x-hidden rounded-xl bg-bgPrimary p-4">
+            <Text font={"bold"} size={"2xl"}>
+              Confirm deposit
+            </Text>
+            Photo Input
+            <form className="mt-8 grid w-2/3 grid-cols-1 gap-8 md:grid-cols-2">
+              <div>
+                <label htmlFor="receiptNumber" className="text-xl">
+                  Receipt number
+                </label>
+                <Input
+                  type="number"
+                  id="receiptNumber"
+                  placeholder="1234"
+                  theme="transparent"
+                  border="gray"
+                  className="mt-2"
+                />
+              </div>
+              <div>
+                <Text size={"xl"}>Date Deposit</Text>
+                <Input
+                  type="date" placeholder="dd/mm/yyyy" theme="transparent" border="gray" className="mt-2"
+                />
+              </div>
+              <div>
+                <label htmlFor="amountDeposited" className="text-xl">
+                  Amount deposited
+                </label>
+                <Input
+                  type="number"
+                  id="amountDeposited"
+                  placeholder="0.00 MAD"
+                  theme="transparent"
+                  border="gray"
+                  className="mt-2"
+                />
+              </div>
+            </form>
+            <div className="mt-4 w-1/4">
+              <Button onClick={handlePay} >Send Details</Button>
+            </div>
+          </div>
         ) : (
           <div className="mt-8 w-full overflow-x-hidden rounded-xl bg-bgPrimary p-4">
             <Text font={"bold"} size={"2xl"}>
@@ -408,11 +510,13 @@ function Payment() {
               Please keep a photo of your receipt to confirm your deposit.
             </Text>
             <div className="mt-4 w-1/4">
-              <Button>Confirm</Button>
+              <Button onClick={handleShowConfirm}>Confirm</Button>
             </div>
           </div>
         )}
       </div>
+
+      <SuccessModal isOpen={isModalOpen} onClose={handleCloseModal} />
     </Container>
   );
 }
