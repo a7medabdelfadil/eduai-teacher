@@ -65,10 +65,12 @@ const Exercises = () => {
           <textarea
             id="area"
             placeholder="Write an Explanation"
-            className="mt-4 w-full rounded-lg border border-borderPrimary bg-bgPrimary px-4 pt-4 pb-12 text-lg text-textSecondary outline-none transition duration-200 ease-in placeholder:text-textSecondary"
+            className="mt-4 w-full rounded-lg border border-borderPrimary bg-bgPrimary px-4 pb-12 pt-4 text-lg text-textPrimary outline-none transition duration-200 ease-in placeholder:text-textSecondary"
           ></textarea>
-          <div className="flex gap-5 mt-8">
-            <Button theme="outline" color="error">End Exercises</Button>
+          <div className="mt-8 flex gap-5">
+            <Button theme="outline" color="error">
+              End Exercises
+            </Button>
             <Button>Next Question</Button>
           </div>
         </div>
