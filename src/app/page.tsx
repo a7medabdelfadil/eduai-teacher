@@ -7,33 +7,42 @@ import {
   FaRegHeart,
   FaPaperPlane,
 } from "react-icons/fa";
+import { AiOutlineClockCircle } from "react-icons/ai";
+import { IoSend } from "react-icons/io5";
+import { FaHeart } from "react-icons/fa6";
 import Input from "~/_components/Input";
 import Comment from "~/_components/Comment";
-import { AiOutlineClockCircle, AiOutlineDown } from "react-icons/ai";
 import Button from "~/_components/Button";
 import React, { useEffect, useState } from "react";
 import { Calendar } from "~/components/ui/calendar";
 import { Text } from "~/_components/Text";
-import { useGetAllPosts, useGetPost, useLikePost } from "~/APIs/hooks/usePost";
+import { useGetAllPosts, useLikePost } from "~/APIs/hooks/usePost";
 import Spinner from "~/_components/Spinner";
 import {
   useCreateComment,
   useGetAllCommentsForPost,
 } from "~/APIs/hooks/useComments";
-import { IoSend } from "react-icons/io5";
-import { FaHeart } from "react-icons/fa6";
-import { useUpcomingEvents } from "~/APIs/hooks/useEvents";
+import { useAddAttendance, useUpcomingEvents } from "~/APIs/hooks/useEvents";
 import { isToday, isAfter } from "date-fns";
 import { CustomEvent } from "~/types";
+import { toast } from "react-toastify";
 
 export default function Home() {
   const {
     data: dataEvents,
     isLoading: isEventsLoading,
-    error,
+    refetch: refetchEvents,
   } = useUpcomingEvents();
-  console.log("dataEvents", dataEvents);
 
+  const { mutate: addAttendance } = useAddAttendance({
+    onSuccess: () => {
+      toast.success("Attendance confirmed successfully!");
+      refetchEvents();
+    },
+    onError: () => {
+      toast.success("Error confirmed attendance!");
+    },
+  });
   const [selectedPostId, setSelectedPostId] = useState<number | null>(null);
   const [comment, setComment] = useState("");
   console.log(comment);
@@ -121,6 +130,11 @@ export default function Home() {
     console.log(likesCount);
   };
 
+  const handleConfirmAttendance = (eventId: string) => {
+    addAttendance(eventId);
+    refetchEvents();
+  };
+  //
   function CalendarDemo() {
     const [date, setDate] = React.useState<Date | undefined>(new Date());
 
@@ -326,14 +340,20 @@ export default function Home() {
                           <Text color="gray">{event.description}</Text>
                         </div>
                         <div>
-                          <Button>Confirm Attendance</Button>
+                          {event.isAttendee ? (
+                            <Button color="secondary">
+                              Attendance Confirmed
+                            </Button>
+                          ) : (
+                            <Button
+                              onClick={() =>
+                                handleConfirmAttendance(event.id.toString())
+                              }
+                            >
+                              Confirm Attendance
+                            </Button>
+                          )}
                         </div>
-                      </div>
-                    </div>
-                    <div className="flex justify-center gap-1 text-primary">
-                      <Text color="primary">Show more </Text>
-                      <div className="mt-[2px]">
-                        <AiOutlineDown size={20} />
                       </div>
                     </div>
                   </div>
@@ -365,14 +385,14 @@ export default function Home() {
                         <AiOutlineClockCircle size={18} />
                       </div>
                       <Text color="primary">
-                            {new Date(event.startDate).toLocaleTimeString()} -{" "}
-                            {Math.abs(
-                              new Date(event.endDate).getTime() -
-                                new Date(event.startDate).getTime(),
-                            ) /
-                              (1000 * 60)}{" "}
-                            Min
-                          </Text>
+                        {new Date(event.startDate).toLocaleTimeString()} -{" "}
+                        {Math.abs(
+                          new Date(event.endDate).getTime() -
+                            new Date(event.startDate).getTime(),
+                        ) /
+                          (1000 * 60)}{" "}
+                        Min
+                      </Text>
                     </div>
                   </div>
 
@@ -382,7 +402,17 @@ export default function Home() {
                       <Text color="gray">{event.description}</Text>
                     </div>
                     <div>
-                      <Button>Confirm Attendance</Button>
+                      {event.isAttendee ? (
+                        <Button color="secondary">Attendance Confirmed</Button>
+                      ) : (
+                        <Button
+                          onClick={() =>
+                            handleConfirmAttendance(event.id.toString())
+                          }
+                        >
+                          Confirm Attendance
+                        </Button>
+                      )}
                     </div>
                   </div>
                 </div>
