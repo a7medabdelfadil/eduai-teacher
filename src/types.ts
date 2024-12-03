@@ -146,7 +146,155 @@ export type StudyStage = {
   courseId: number;
 };
 
-/** Posts */
+/** Fess **/
+
+export type Fee = {
+  invoiceId: number;
+  semesterName: string;
+  creationDate: string;
+  updateDate: string;
+  dueDate: string;
+  paidAmount: number;
+  totalFeesAmount: number;
+  feesCurrency: string;
+  paymentStatus: string;
+  discountAmount: number;
+};
+
+// Type for the full API response
+export type FeesResponse = {
+  success: boolean;
+  message: string;
+  data: Fee[];
+};
+
+export type Exam = {
+  id: number;
+  examDate: string;
+  examBeginning: string;
+  examEnding: string;
+  examName: string;
+  courseName: string;
+  className: string;
+  examTypeName: string;
+  examLegalTypeName: string;
+};
+
+// Type for the exam list response
+export type ExamListResponse = Exam[];
+
+export type Upcoming_Previous_Exams = {
+  success: boolean;
+  message: string;
+  data: Fee[];
+};
+
+export enum AttendanceStatus {
+  ABSENT = "ABSENT",
+  // Add other potential statuses if needed
+}
+
+export type AbsenceReason = 'OTHER';
+
+// Type for individual session attendance record
+export type SessionAttendanceRecord = {
+    id: number;
+    studentName: string;
+    status: AttendanceStatus;
+    absenceReason: AbsenceReason | null;
+};
+
+// Type for the full API response
+export type SessionAttendanceResponse = {
+    success: boolean;
+    message: string;
+    data: {
+        content: SessionAttendanceRecord[];
+        totalElementsCount: number;
+        totalPagesCount: number;
+        pageElementsCount: number;
+        pageSize: number;
+        pageNumber: number;
+        firstPage: boolean;
+        lastPage: boolean;
+        emptyPage: boolean;
+        sortedPage: boolean;
+    };
+};
+
+// Enum for day names
+export enum DayName {
+  MONDAY = "MONDAY",
+  TUESDAY = "TUESDAY", 
+  WEDNESDAY = "WEDNESDAY",
+  THURSDAY = "THURSDAY",
+  FRIDAY = "FRIDAY",
+  SATURDAY = "SATURDAY",
+  SUNDAY = "SUNDAY"
+}
+
+// Interface for individual attendance record
+export type AttendanceRecord = {
+  checkInTime: string;
+  checkOutTime: string;
+  status: AttendanceStatus;
+  date: string;
+  dayName: DayName;
+}
+
+// Interface for the full attendance API response
+export type AttendanceResponse = {
+  success: boolean;
+  message: string;
+  data: {
+    content: AttendanceRecord[];
+    totalElementsCount: number;
+    totalPagesCount: number;
+    pageElementsCount: number;
+    pageSize: number;
+    pageNumber: number;
+    firstPage: boolean;
+    lastPage: boolean;
+    emptyPage: boolean;
+    sortedPage: boolean;
+  }
+}
+
+export type AttendanceNumbersResponse = {
+  success: boolean;
+  message: string;
+  data: {
+    totalAbsent: number;
+    totalEarlyDeparture: number;
+    totalPresent: number;
+    totalLeaveDays: number;
+  }
+}
+
+export type LeaveRecord ={
+  leaveBalance: number;
+  applyDays: number;
+  startDate: string;
+  endDate: string;
+}
+
+// Interface for the full leave attendance API response
+export type LeaveAttendanceResponse = {
+  success: boolean;
+  message: string;
+  data: {
+    content: LeaveRecord[];
+    totalElementsCount: number;
+    totalPagesCount: number;
+    pageElementsCount: number;
+    pageSize: number;
+    pageNumber: number;
+    firstPage: boolean;
+    lastPage: boolean;
+    emptyPage: boolean;
+    sortedPage: boolean;
+  }
+}
 
 export type Attachment = {
   id: string;
@@ -278,4 +426,83 @@ export type TeacherProfileUpdate = {
 export type ChangePassword = {
   password: string;
   newPassword: string;
+};
+
+export type SessionMaterial = {
+  materialId: number;
+  title: string;
+  description: string;
+  fileId: string | null;
+  fileName: string | null;
+  fileExtension: string | null;
+  fileLink: string | null;
+};
+
+// Type for the full API response
+export type SessionMaterialResponse = {
+  success: boolean;
+  message: string;
+  data: SessionMaterial[];
+};
+
+export type SessionExplainedItem = {
+  id: number;
+  topicId: number;
+  topicName: string;
+  description: string;
+};
+
+// Type for the full API response
+export type SessionExplainedResponse = {
+  success: boolean;
+  message: string;
+  data: SessionExplainedItem[];
+};
+
+export type ComplaintType = 'Teacher to student' | 'Parent to teacher';
+
+// Type for individual complaint
+export type Complaint = {
+    id: number;
+    subject: string;
+    message: string;
+    deleted: boolean;
+    approved: boolean;
+    type: ComplaintType;
+    creationDateTime: string;
+    updateDateTime: string;
+    teacherId: number;
+    teacherName: string;
+    studentId: number;
+    studentName: string;
+    isVoiceNoteExists: boolean;
+    viewVoiceNoteLink: string;
+    downloadVoiceNoteLink: string;
+};
+
+// Type for the full API response
+export type ComplainsResponse = {
+    success: boolean;
+    message: string;
+    data: {
+        content: Complaint[];
+        totalElementsCount: number;
+        totalPagesCount: number;
+        pageElementsCount: number;
+        pageSize: number;
+        pageNumber: number;
+        firstPage: boolean;
+        lastPage: boolean;
+        emptyPage: boolean;
+        sortedPage: boolean;
+    };
+};
+
+// Material 
+
+export type Material = {
+  sessionId: string;
+  title: string;
+  description: string;
+  file: File;
 };
