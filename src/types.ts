@@ -146,6 +146,32 @@ export type StudyStage = {
   courseId: number;
 };
 
+export interface LessonTopic {
+  topicId: number;
+  topicName: string;
+  hasFile: boolean;
+  fileLink: string | null;
+  videoUrls: string[];
+}
+
+export interface LessonTopicResponse {
+  success: boolean;
+  message: string;
+  data: {
+    content: LessonTopic[];
+    totalElementsCount: number;
+    totalPagesCount: number;
+    pageElementsCount: number;
+    pageSize: number;
+    pageNumber: number;
+    firstPage: boolean;
+    lastPage: boolean;
+    emptyPage: boolean;
+    sortedPage: boolean;
+  };
+}
+
+
 /** Fess **/
 
 export type Fee = {
@@ -191,6 +217,7 @@ export type Upcoming_Previous_Exams = {
 
 export enum AttendanceStatus {
   ABSENT = "ABSENT",
+  PRESENT = "PRESENT"
   // Add other potential statuses if needed
 }
 
@@ -198,9 +225,9 @@ export type AbsenceReason = 'OTHER';
 
 // Type for individual session attendance record
 export type SessionAttendanceRecord = {
-    id: number;
+    studentId: number;
     studentName: string;
-    status: AttendanceStatus;
+    sessionStatus: AttendanceStatus;
     absenceReason: AbsenceReason | null;
 };
 
@@ -208,18 +235,7 @@ export type SessionAttendanceRecord = {
 export type SessionAttendanceResponse = {
     success: boolean;
     message: string;
-    data: {
-        content: SessionAttendanceRecord[];
-        totalElementsCount: number;
-        totalPagesCount: number;
-        pageElementsCount: number;
-        pageSize: number;
-        pageNumber: number;
-        firstPage: boolean;
-        lastPage: boolean;
-        emptyPage: boolean;
-        sortedPage: boolean;
-    };
+    data: SessionAttendanceRecord[];
 };
 
 // Enum for day names
@@ -316,6 +332,7 @@ export type Post = {
   isEdited: boolean;
   likesCount: number;
   attachmentsCount: number;
+  commentsCount: number;
   attachments: Attachment[];
 };
 
@@ -505,6 +522,22 @@ export type Material = {
   title: string;
   description: string;
   file: File;
+};
+
+export type LessonSessionData = {
+  sessionId: number;
+  courseId: number;
+  courseName: string;
+  classroomCode: string;
+  date: string;
+  startTime: string;
+  endTime: string;
+};
+
+export type LessonSessionResponse = {
+  success: boolean;
+  message: string;
+  data: LessonSessionData;
 };
 
 // complaint

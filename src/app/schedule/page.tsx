@@ -12,15 +12,16 @@ import {
 } from "~/APIs/hooks/useSchedule";
 import Spinner from "~/_components/Spinner";
 import { format } from "date-fns";
-import { AttendanceStatus, Material, type TeacherSchedule } from "~/types";
+import { AttendanceStatus, type Material, type TeacherSchedule } from "~/types";
 import { useState } from "react";
 import Button from "~/_components/Button";
 import Input from "~/_components/Input";
-import { useCreateSessionMaterial } from "~/APIs/hooks/useMaterial";
+import { useCreateSessionMaterial, useLessonSessionId } from "~/APIs/hooks/useMaterial";
 import { toast } from "react-toastify";
 import Link from "next/link";
 import { FaDownload } from "react-icons/fa6";
 import { FaEllipsisV } from "react-icons/fa";
+import { useRecordAttendance } from "~/APIs/hooks/useAttendance";
 
 function CalendarDemo({
   onDateSelect,
@@ -62,7 +63,6 @@ const Schedule = () => {
     },
     onError: (error: any) => {
       toast.error("Failed to add material.");
-      console.error(error);
     },
   });
 
@@ -79,6 +79,8 @@ const Schedule = () => {
   };
 
   const handleSubmit = () => {
+
+
     if (!selectedScheduleId) {
       toast.error("ID is required to create a material.");
       return;
@@ -96,7 +98,7 @@ const Schedule = () => {
     const formData = new FormData();
 
     const requestData = {
-      sessionId: selectedScheduleId.toString(),
+      sessionId: dataLessonId?.sessionId,
       title: materialData.title,
       description: materialData.description,
     };
@@ -120,6 +122,9 @@ const Schedule = () => {
     () => format(selectedDate, "yyyy-MM-dd"),
     [selectedDate],
   );
+
+  const { data: dataLessonId} = useLessonSessionId(formattedDate, selectedScheduleId ?? "");
+  console.log("dataLessonId", dataLessonId);
 
   function convertToAmPm(time24: string): string {
     const timeRegex = /^([01]\d|2[0-3]):([0-5]\d):([0-5]\d)$/;
@@ -197,7 +202,7 @@ const Schedule = () => {
     data: Materiales,
     isLoading: isMaterialeLoading,
     refetch: retechMaterials,
-  } = useGetAllSessionMateriale(selectedScheduleId ?? "");
+  } = useGetAllSessionMateriale(dataLessonId?.sessionId.toString() ?? "");
 
   const { data: Explaineds, isLoading: isExplainedLoading } =
     useGetAllSessionExplained(selectedScheduleId ?? "");
@@ -219,6 +224,33 @@ const Schedule = () => {
 
   const handleCloseModal = () => {
     setIsModalOpen(false);
+  };
+
+  const { isPending, mutate: recordAttendance } = useRecordAttendance({
+    onSuccess: () => {
+      toast.success("Attendance recorded successfully!");
+      // Optionally refetch attendance data
+      // You might want to add a refetch method for session attendance
+    },
+    onError: () => {
+      toast.error("Failed to record attendance.");
+    }
+  });
+
+  const handleAttendanceRecord = (
+    studentId: string, 
+    status: AttendanceStatus
+  ) => {
+    if (!selectedScheduleId) {
+      toast.error("Please select a session first.");
+      return;
+    }
+
+    recordAttendance({
+      studentId,
+      sessionId: selectedScheduleId,
+      status
+    });
   };
 
   return (
@@ -340,8 +372,8 @@ const Schedule = () => {
                   </tr>
                 </thead>
                 <tbody>
-                  {attendanceData?.data?.content.map((student) => (
-                    <tr key={student.id} className="font-semibold">
+                  {attendanceData?.data?.map((student) => (
+                    <tr key={student.studentId} className="font-semibold">
                       <th
                         scope="row"
                         className="grid gap-2 whitespace-nowrap px-6 py-4 font-medium text-textSecondary"
@@ -352,8 +384,15 @@ const Schedule = () => {
                       </th>
                       <td className="justify-end whitespace-nowrap px-6 py-4 text-end">
                         <button
+                          onClick={() => 
+                            handleAttendanceRecord(
+                              student.studentId.toString(), 
+                              AttendanceStatus.ABSENT
+                            )
+                          }
+                          disabled={isPending}
                           className={`rounded-full p-3 shadow-lg ${
-                            student.status !== AttendanceStatus.ABSENT
+                            student.sessionStatus !== AttendanceStatus.ABSENT
                               ? "bg-gray-200"
                               : "bg-error/10"
                           }`}
@@ -363,8 +402,15 @@ const Schedule = () => {
                       </td>
                       <td className="justify-end whitespace-nowrap px-6 py-4 text-end">
                         <button
+                        onClick={() => 
+                          handleAttendanceRecord(
+                            student.studentId.toString(), 
+                            AttendanceStatus.PRESENT
+                          )
+                        }
+                        disabled={isPending}
                           className={`rounded-full p-3 shadow-lg ${
-                            student.status !== AttendanceStatus.ABSENT
+                            student.sessionStatus !== AttendanceStatus.ABSENT
                               ? "bg-success/10"
                               : "bg-gray-200"
                           }`}
@@ -374,8 +420,8 @@ const Schedule = () => {
                       </td>
                     </tr>
                   ))}
-                  {(!attendanceData?.data?.content ||
-                    attendanceData.data.content.length === 0) && (
+                  {(!attendanceData?.data ||
+                    attendanceData.data.length === 0) && (
                     <tr>
                       <td
                         colSpan={3}
@@ -468,7 +514,8 @@ const Schedule = () => {
               </div>
             )}
           </div>
-          <div className="grid w-full gap-2 rounded-md bg-bgPrimary p-4">
+          <div 
+          className="grid w-full gap-2 rounded-md bg-bgPrimary p-4">
             {isExplainedLoading ? (
               <div className="flex w-full justify-center">
                 <Spinner />
@@ -540,7 +587,7 @@ const Schedule = () => {
       </div>
       {isModalOpen && (
         <div className="fixed inset-0 z-[1000] flex items-center justify-center bg-black bg-opacity-50">
-          <div className="w-1/3 rounded-lg bg-white p-6">
+          <div className="w-1/3 rounded-lg bg-bgSecondary p-6">
             <h2 className="mb-4 text-xl font-bold">Add Material</h2>
             <div className="flex flex-col gap-4">
               <Input
