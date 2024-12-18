@@ -63,7 +63,7 @@ const Login = () => {
                       message: "Username must be at least 3 characters",
                     },
                   })}
-                  error={errors.username?.message?.toString() ?? ""}
+                  error={typeof errors.username?.message === 'string' ? errors.username.message : ''}
                   placeholder="Username"
                   theme="transparent"
                 />
@@ -93,12 +93,9 @@ const Login = () => {
                   </p>
                 )}
               </label>
-              <div className="flex justify-end text-end">
-                <a href="/forget-password">
-                  <Text font={"medium"} size={"md"} color={"muted"}>
-                    Forgot Password ?
-                  </Text>
-                </a>
+              <div className="flex gap-2 items-center">
+              Remember Me
+                <input type="checkbox" name="remember" id="" />
               </div>
               <div className="flex justify-center text-center">
               <Button type="submit" disabled={isSubmitting}>

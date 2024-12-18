@@ -9,6 +9,8 @@ import {
   fetchAllSessionAttendance,
   fetchAllSessionMaterial,
   fetchAllSessionExplained,
+  fetchAllRealSession,
+  createSession,
 } from "../features/schedule";
 import type {
   SessionAttendanceResponse,
@@ -23,6 +25,19 @@ const commonQueryOptions = {
   refetchOnWindowFocus: false,
   refetchOnReconnect: false,
   refetchOnMount: false,
+};
+
+export const useCreateSession = (
+  options?: UseMutationOptions<any, Error, Partial<any>>,
+) => {
+  const queryClient = useQueryClient();
+  return useMutation<any, Error, Partial<any>>({
+    mutationFn: createSession,
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: ["createSession"] });
+    },
+    ...options,
+  });
 };
 
 export const useGetAllSchedules = (
@@ -44,6 +59,18 @@ export const useGetAllSessionAttendance = (
   return useQuery<SessionAttendanceResponse, Error>({
     queryKey: ["sessionAttendance", sessionId],
     queryFn: () => fetchAllSessionAttendance(sessionId),
+    ...commonQueryOptions,
+    ...options,
+  });
+};
+
+export const useGetAllRealSession = (
+  date: string,
+  options?: UseQueryOptions<any, Error>,
+) => {
+  return useQuery<any, Error>({
+    queryKey: ["realSession", date],
+    queryFn: () => fetchAllRealSession(date),
     ...commonQueryOptions,
     ...options,
   });

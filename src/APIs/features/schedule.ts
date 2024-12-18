@@ -1,6 +1,13 @@
 import axiosInstance from "../axios";
 import type { SessionAttendanceResponse, SessionExplainedResponse, SessionMaterialResponse, TeacherScheduleResponse } from "../../types";
 
+export const createSession = async (
+    formData: Partial<any>,
+  ): Promise<any> => {
+    const response = await axiosInstance.post<any>("/api/v1/management/lesson-session", formData);
+    return response.data;
+  };
+
 export const fetchAllSchedule = async (date: string): Promise<TeacherScheduleResponse> => {
     const response = await axiosInstance.get<TeacherScheduleResponse>(
         `/api/v1/teacher-teaching/date-schedule?date=${date}`
@@ -11,6 +18,13 @@ export const fetchAllSchedule = async (date: string): Promise<TeacherScheduleRes
 export const fetchAllSessionAttendance = async (sessionId: string): Promise<SessionAttendanceResponse> => {
     const response = await axiosInstance.get<SessionAttendanceResponse>(
         `/api/attendance/students-with-status/${sessionId}`
+    );
+    return response.data;
+};
+
+export const fetchAllRealSession = async (date: string): Promise<any> => {
+    const response = await axiosInstance.get<any>(
+        `/api/v1/management/lesson-session/all?page=0&size=1000000&date=${date}`
     );
     return response.data;
 };
