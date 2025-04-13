@@ -1,4 +1,5 @@
 import { create } from "zustand";
+import { persist } from 'zustand/middleware'
 
 // Boolean value
 type BooleanState = {
@@ -18,6 +19,8 @@ type UserData = {
     username: string;
     email: string;
     name_en: string;
+    id: string;
+    picture: string;
 }
 
 type UserDataState = {
@@ -31,7 +34,9 @@ export const useUserDataStore = create<UserDataState>((set) => ({
     userData: {
         username: '',
         email: '',
-        name_en: ''
+        name_en: '',
+        id: '',
+        picture: ''
     },
 
     setUserData: (data) => {
@@ -48,10 +53,33 @@ export const useUserDataStore = create<UserDataState>((set) => ({
             userData: {
                 username: '',
                 email: '',
-                name_en: ''
+                name_en: '',
+                id: '',
+                picture: '',
             }
         }))
     }
 }))
 
 //
+interface LanguageState {
+
+    language: string;
+  
+    setLanguage: (language: string) => void;
+  
+  }
+
+const useLanguageStore = create(
+  persist<LanguageState>(
+    (set) => ({
+      language: 'en',
+      setLanguage: (newLanguage: string) => set({ language: newLanguage }),
+    }),
+    {
+      name: 'language-storage',
+    }
+  )
+)
+
+export default useLanguageStore

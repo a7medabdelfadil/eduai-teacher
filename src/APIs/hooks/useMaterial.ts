@@ -6,7 +6,7 @@ import {
   UseQueryOptions,
 } from "@tanstack/react-query";
 import type { LessonSessionData, Material } from "../../types";
-import { createSessionMaterial, deleteMaterial, fetchLessonSession, updateSessionMaterialDetails, updateSessionMaterialFile } from "../features/material";
+import { createSessionMaterial, deleteMaterial, fetchLessonSession, fetchUnreviedQuestions, generateExam, getAllTopics, updateQuestion, updateSessionMaterialDetails, updateSessionMaterialFile } from "../features/material";
 
 export const useCreateSessionMaterial = (
   options?: UseMutationOptions<Material, Error, FormData>,
@@ -22,6 +22,20 @@ export const useCreateSessionMaterial = (
   });
 };
 
+export const useGenerateExam = (
+  options?: UseMutationOptions<any, Error, string>,
+) => {
+  const queryClient = useQueryClient();
+
+  return useMutation<any, Error, string>({
+    mutationFn: generateExam,
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: ["generateExam"] });
+    },
+    ...options,
+  });
+};
+
 export const useLessonSessionId = (
   date: string,
   scheduleItemId: string,
@@ -31,6 +45,44 @@ export const useLessonSessionId = (
     queryKey: ["lesson-session", date, scheduleItemId],
     queryFn: () => fetchLessonSession(date, scheduleItemId),
     enabled: Boolean(date && scheduleItemId), // Prevent query if inputs are invalid
+    ...options,
+  });
+};
+
+export const useGetAllUnreviedQuestions = (
+  options?: UseQueryOptions<any, Error>,
+) => {
+  return useQuery<any, Error>({
+    queryKey: ["UnreviedQuestions"],
+    queryFn: () => fetchUnreviedQuestions(),
+    // enabled: Boolean(), // Prevent query if inputs are invalid
+    ...options,
+  });
+};
+
+export const useGetAllTopics = (
+  courseId: string | undefined,
+  options?: UseQueryOptions<any, Error>,
+) => {
+  return useQuery<any, Error>({
+    queryKey: ["topics", courseId],
+    queryFn: () => getAllTopics(courseId!),
+    enabled: Boolean(courseId),
+    ...options,
+  });
+};
+
+
+export const useUpdateupdateQuestion = (
+  options?: UseMutationOptions<any, Error, { data: any }>
+) => {
+  const queryClient = useQueryClient();
+
+  return useMutation<any, Error, { data: any }>({
+    mutationFn: ({ data }) => updateQuestion(data),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: ["session-materials"] });
+    },
     ...options,
   });
 };

@@ -15,6 +15,20 @@ export const createSessionMaterial = async (
   return response.data;
 };
 
+export const generateExam = async (
+  explainedId: string,
+): Promise<any> => {
+  const response = await axiosInstance.post<any>(
+    `/api/v1/daily-exam/teacher/generate-exams/${explainedId}?questions-count&questions-type`,
+    {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    },
+  );
+  return response.data;
+};
+
 export const fetchLessonSession = async (
   date: string,
   scheduleItemId: string,
@@ -23,6 +37,34 @@ export const fetchLessonSession = async (
     `/api/v1/management/lesson-session/for-schedule-item?date=${date}&scheduleItemId=${scheduleItemId}`,
   );
   return response.data.data;
+};
+
+export const fetchUnreviedQuestions = async (
+): Promise<any> => {
+  const response = await axiosInstance.get<any>(
+    `/api/v1/lesson-ai-question/unreviewed?course-id=314&lesson-name=lesson_1&limit=1000000`,
+  );
+  return response.data.data;
+};
+
+export const getAllTopics = async (courseId: string): Promise<any> => {
+  if (!courseId) {
+    throw new Error('Course ID is required');
+  }
+  const response = await axiosInstance.get<any>(
+    `/api/v1/management/lesson/all?page=0&size=1000&courseId=${courseId}`,
+  );
+  return response;
+};
+
+export const updateQuestion = async (
+  formData: FormData,
+): Promise<any> => {
+  const response = await axiosInstance.put(
+    `/api/v1/lesson-ai-question`,
+    formData
+  );
+  return response.data;
 };
 
 // Update the title and description

@@ -38,7 +38,7 @@ const Login = () => {
   return (
     <>
       <div className="grid h-screen grid-cols-2 items-center justify-center bg-bgSecondary duration-300 ease-in max-[1040px]:grid-cols-1">
-        <div className="flex h-full w-full justify-end max-[1040px]:hidden">
+        <div className="flex h-full w-full border justify-end max-[1040px]:hidden">
           <div className="flex h-full w-[700px] items-center justify-end">
             <img className="h-full w-full" src="images/login.png" alt="#" />
           </div>
@@ -46,7 +46,7 @@ const Login = () => {
         <div className="gird items-center justify-center text-center">
           <div className="mb-10 grid">
             <Text font={"bold"} size={"4xl"} className="mb-2">
-              Log in
+              Sign in
             </Text>
             <Text font={"medium"} size={"lg"} color={"gray"}>
               Sign in to enjoy the feature of EduAI
@@ -98,9 +98,7 @@ const Login = () => {
                 <input type="checkbox" name="remember" id="" />
               </div>
               <div className="flex justify-center text-center">
-              <Button type="submit" disabled={isSubmitting}>
-                  {isSubmitting ? "Login..." : "Login"}
-                </Button>
+              <Button type="submit" disabled={isSubmitting}> {isSubmitting ? "Login..." : "Login"} </Button>
               </div>
               <div className="flex items-center justify-center gap-2 text-center">
                 <Text font={"medium"} size={"md"} color={"muted"}>

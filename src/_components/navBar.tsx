@@ -1,12 +1,12 @@
 /* eslint-disable @next/next/no-img-element */
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { AiFillHome } from "react-icons/ai";
 import { RiCalendarScheduleFill } from "react-icons/ri";
 import { FiFlag } from "react-icons/fi";
-import { HiOutlineSquares2X2 } from "react-icons/hi2";
-import { FaBusAlt } from "react-icons/fa";
+import { HiOutlineNewspaper, HiOutlineSquares2X2 } from "react-icons/hi2";
+import { FaBusAlt, FaQuestion } from "react-icons/fa";
 import { CiSquareCheck } from "react-icons/ci";
 import { usePathname } from "next/navigation";
 import { MdAttachMoney } from "react-icons/md";
@@ -15,34 +15,15 @@ import Spinner from "./Spinner";
 import { Switch } from "~/components/ui/switch";
 import * as DropdownMenu from "@radix-ui/react-dropdown-menu";
 import Cookie from "js-cookie";
-import { useBooleanValue, useUserDataStore } from "~/APIs/store";
-import { useGetProfileUpdate } from "~/APIs/hooks/useProfile";
+import useLanguageStore, { useBooleanValue, useUserDataStore } from "~/APIs/store";
+import { useProfile } from "~/APIs/hooks/useProfile";
+import { SiGnuprivacyguard } from "react-icons/si";
+import { FaQuoteLeft } from "react-icons/fa6";
+import { FcSupport } from "react-icons/fc";
+import { useNotificationsWebSocket } from "~/hooks/useNotifications";
+import { Globe } from "lucide-react";
+import { cn } from "~/lib/utils";
 
-const useWindowDimensions = () => {
-  const isClient = typeof window === "object";
-  const [windowSize, setWindowSize] = useState(
-    isClient
-      ? { width: window.innerWidth, height: window.innerHeight }
-      : { width: undefined, height: undefined },
-  );
-
-  useEffect(() => {
-    if (!isClient) {
-      return;
-    }
-
-    const handleResize = () => {
-      setWindowSize({ width: window.innerWidth, height: window.innerHeight });
-    };
-
-    window.addEventListener("resize", handleResize);
-    handleResize();
-
-    return () => window.removeEventListener("resize", handleResize);
-  }, [isClient]);
-
-  return windowSize;
-};
 
 interface NavBarLinkProps {
   href: string;
@@ -50,9 +31,11 @@ interface NavBarLinkProps {
   label: string;
   small: boolean;
   url: string;
+  onClick?: () => void;
 }
 
 const NavBarLink = ({
+  onClick,
   href,
   icon: Icon,
   label,
@@ -63,6 +46,7 @@ const NavBarLink = ({
   return (
     <li>
       <Link
+      onClick={onClick}
         className={`flex ${small ? "w-[40px]" : ""} text-md text-navLinks group mt-4 items-center gap-x-3.5 rounded-lg px-2.5 py-2 font-sans font-semibold hover:bg-bgSecondary hover:text-primary`}
         href={href}
       >
@@ -90,13 +74,14 @@ const NavBar = () => {
     setProfile(!profile);
   };
   const [isClient, setIsClient] = useState(false);
-const { data: dataUpdate } =
-    useGetProfileUpdate();
+  const { data: dataUpdate } = useProfile();
 
     useUserDataStore.getState().setUserData({ 
       username: dataUpdate?.data.username, 
       email: dataUpdate?.data.email, 
       name_en: dataUpdate?.data.name, 
+      id: dataUpdate?.data.id?.toString(), 
+      picture: dataUpdate?.data.picture, 
   });
   const userData = useUserDataStore.getState().userData;
   useEffect(() => {
@@ -131,25 +116,71 @@ const { data: dataUpdate } =
     }
   };
 
+  const navbarRef = useRef<HTMLDivElement>(null);
+  const toggleNavbar = () => {
+    setIsOpen((prev) => !prev);
+  };
+  const handleClickOutside = (event: MouseEvent) => {
+    if (
+      navbarRef.current &&
+      !navbarRef.current.contains(event.target as Node)
+    ) {
+      setIsOpen(false);
+    }
+  };
+  useEffect(() => {
+    if (isOpen) {
+      document.addEventListener("mousedown", handleClickOutside);
+    } else {
+      document.removeEventListener("mousedown", handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [isOpen]);
+  const userId = userData.id;
+  const { notificationsCount, isConnected } = useNotificationsWebSocket(userId);
+  
+
   const OpenSideBar = () => {
     setIsOpen(!isOpen);
   };
 
-  const { width } = useWindowDimensions();
+  const { language, setLanguage } = useLanguageStore();
+  const [isOpenL, setIsOpenL] = useState(false)
+  const dropdownRef = useRef<HTMLDivElement>(null)
+  
+  const languages = [
+    { code: 'en', label: 'English' },
+    { code: 'ar', label: 'العربية' },
+    { code: 'fr', label: 'Français' },
+  ]
 
   useEffect(() => {
-    if (width !== undefined && width >= 1023) {
-      setIsOpen(true);
+    const handleClickOutside = (event: { target: any; }) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setIsOpenL(false)
+      }
     }
-  }, [width]);
 
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [])
+
+
+  const translate = (en: string, fr: string, ar: string) => {
+    const language = useLanguageStore.getState().language; // Assuming useLanguageStore manages language state
+    return language === "fr" ? fr : language === "ar" ? ar : en;
+  };
+  
   const navLinks = [
-    { href: "/", icon: AiFillHome, label: "Home" },
-    { href: "/schedule", icon: RiCalendarScheduleFill, label: "My Schedule" },
-    { href: "/bus", icon: FaBusAlt, label: "Bus Tracker" },
-    { href: "/finance", icon: MdAttachMoney, label: "Finance" },
-    { href: "/complaint", icon: FiFlag, label: "Complaint" },
-    { href: "/attendance", icon: CiSquareCheck, label: "My attendance" },
+    { href: "/", icon: AiFillHome, label: translate("Home", "Accueil", "الرئيسية") },
+    { href: "/schedule", icon: RiCalendarScheduleFill, label: translate("My Schedule", "Mon emploi du temps", "جدولي") },
+    { href: "/bus", icon: FaBusAlt, label: translate("Bus Tracker", "Suivi du bus", "متتبع الحافلة") },
+    { href: "/finance", icon: MdAttachMoney, label: translate("Finance", "Finance", "المالية") },
+    { href: "/complaint", icon: FiFlag, label: translate("Complaint", "Réclamation", "شكوى") },
+    { href: "/attendance", icon: CiSquareCheck, label: translate("My Attendance", "Ma présence", "حضوري") },
   ];
 
   if (!isClient)
@@ -161,9 +192,13 @@ const { data: dataUpdate } =
 
   return (
     <>
-      <header>
+    {isOpen && (
+        <div className="fixed inset-0 z-40 bg-black bg-opacity-40" onClick={toggleNavbar}></div>
+      )}
+      <header ref={navbarRef}>
         <div>
           <header
+          dir={language === "ar" ? "rtl" : "ltr"}
             className={`sticky inset-x-0 top-0 z-[48] flex w-full flex-wrap bg-bgPrimary py-2.5 text-sm sm:flex-nowrap sm:justify-start sm:py-4 lg:ps-64`}
           >
             <nav
@@ -207,13 +242,14 @@ const { data: dataUpdate } =
 
                 <div className="flex flex-row items-center justify-end gap-2">
                   <Switch
+                  dir="ltr"
                     checked={theme === "dark"} 
                     onCheckedChange={handleThemeChange} 
                     className="mx-1" 
                   />
                   <Link
                     href="/notifies"
-                    className="inline-flex h-[2.375rem] w-[2.375rem] items-center justify-center gap-x-2 rounded-full text-sm font-semibold text-textPrimary hover:bg-bgSecondary disabled:pointer-events-none disabled:opacity-50"
+                    className="relative inline-flex h-[2.375rem] w-[2.375rem] items-center justify-center gap-x-2 rounded-full text-sm font-semibold text-textPrimary hover:bg-bgSecondary disabled:pointer-events-none disabled:opacity-50"
                   >
                     <svg
                       className="size-4 flex-shrink-0"
@@ -230,6 +266,11 @@ const { data: dataUpdate } =
                       <path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9" />
                       <path d="M10.3 21a1.94 1.94 0 0 0 3.4 0" />
                     </svg>
+                    {notificationsCount > 0 && (
+                      <div className="absolute top-4 left-5 bg-sky-500 text-white w-4 h-4 rounded-full flex justify-center items-center text-center text-sm">
+                        <span>{notificationsCount}</span>
+                      </div>
+                    )}
                   </Link>
                   <Link
                     href="/chat"
@@ -250,6 +291,35 @@ const { data: dataUpdate } =
                     </svg>
                   </Link>
 
+                  <div className="relative" ref={dropdownRef}>
+      <button
+        className="flex items-center gap-2 px-4 py-2 border rounded-md hover:bg-bgSecondary"
+        onClick={() => setIsOpenL(!isOpenL)}
+      >
+        <Globe className="h-4 w-4" />
+        <span>{languages.find(lang => lang.code === language)?.label}</span>
+      </button>
+      
+      {isOpenL && (
+        <div className={`absolute ${language == "ar" ? "-right-10" : "right-0" } mt-2 w-48 bg-bgPrimary border rounded-md shadow-lg`}>
+          {languages.map((lang) => (
+            <button
+              key={lang.code}
+              onClick={() => {
+                setLanguage(lang.code)
+                setIsOpenL(false)
+              }}
+              className={`w-full text-left px-4 py-2 hover:bg-bgSecondary ${
+                language === lang.code ? 'bg-bgSecondary' : ''
+              }`}
+            >
+              {lang.label}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+
                   <div className="hs-dropdown relative inline-flex [--placement:bottom-right]">
                     <DropdownMenu.Root>
                       <DropdownMenu.Trigger asChild>
@@ -262,7 +332,7 @@ const { data: dataUpdate } =
                           <div>
                             <img
                               className="inline-block h-[38px] w-[38px] rounded-full ring-2 ring-bgSecondary"
-                              src="/images/userr.png"
+                              src={`${userData.picture ?? "/images/userr.png"}`}
                               alt="User Avatar"
                             />
                           </div>
@@ -271,7 +341,7 @@ const { data: dataUpdate } =
 
                       {profile && (
                         <DropdownMenu.Content
-                          className={`text-textPrimary fixed right-[20px] top-[20px] min-w-60 rounded-lg bg-bgPrimary p-2 shadow-md`}
+                          className={`text-textPrimary fixed  ${language == "ar" ? "" : "right-[20px]" } top-[20px] min-w-60 rounded-lg bg-bgPrimary p-2 shadow-md`}
                           aria-labelledby="hs-dropdown-with-header"
                           align="end"
                           sideOffset={5}
@@ -308,6 +378,51 @@ const { data: dataUpdate } =
                                   <path d="M16 3.13a4 4 0 0 1 0 7.75" />
                                 </svg>
                                 Profile
+                              </Link>
+                            </DropdownMenu.Item>
+                            <DropdownMenu.Item asChild>
+                            <Link
+                                className="text-textPrimary flex items-center gap-x-3.5 rounded-lg border-none px-3 py-2 text-sm outline-none hover:bg-bgSecondary"
+                                href="/about"
+                              >
+                                <FaQuoteLeft />
+                                About Us
+                              </Link>
+                            </DropdownMenu.Item>
+                            <DropdownMenu.Item asChild>
+                            <Link
+                                className="text-textPrimary flex items-center gap-x-3.5 rounded-lg border-none px-3 py-2 text-sm outline-none hover:bg-bgSecondary"
+                                href="/faq"
+                              >
+                                <FaQuestion />
+                                FAQ
+                              </Link>
+                            </DropdownMenu.Item>
+                            <DropdownMenu.Item asChild>
+                            <Link
+                                className="text-textPrimary flex items-center gap-x-3.5 rounded-lg border-none px-3 py-2 text-sm outline-none hover:bg-bgSecondary"
+                                href="/terms"
+                              >
+                                <HiOutlineNewspaper />
+                                Terms and Conditions
+                              </Link>
+                            </DropdownMenu.Item>
+                            <DropdownMenu.Item asChild>
+                            <Link
+                                className="text-textPrimary flex items-center gap-x-3.5 rounded-lg border-none px-3 py-2 text-sm outline-none hover:bg-bgSecondary"
+                                href="/privacy"
+                              >
+                                <SiGnuprivacyguard />
+                                Privacy Policy
+                              </Link>
+                            </DropdownMenu.Item>
+                            <DropdownMenu.Item asChild>
+                            <Link
+                                className="text-textPrimary flex items-center gap-x-3.5 rounded-lg border-none px-3 py-2 text-sm outline-none hover:bg-bgSecondary"
+                                href="/support"
+                              >
+                                <FcSupport />
+                                Support
                               </Link>
                             </DropdownMenu.Item>
                             <DropdownMenu.Item asChild>
@@ -362,15 +477,23 @@ const { data: dataUpdate } =
               </button>
             </div>
           </div>
-          {isOpen && (
+          
             <div
-              dir={"ltr"}
+              dir={language === "ar" ? "rtl" : "ltr"}
               id="application-sidebar"
-              className={`hs-overlay hs-overlay-open:translate-x-0 transform transition-all duration-300 [--auto-close:lg] ${
-                small ? "w-[90px]" : "w-[260px]"
-              } drop-shadow-2xl lg:drop-shadow-none ${
-                !isOpen ? "w-0" : ""
-              } fixed inset-y-0 start-0 z-[60] bg-bgPrimary duration-300 ease-in lg:bottom-0 lg:end-auto lg:block lg:translate-x-0`}
+              className={cn(
+                "fixed inset-y-0 start-0 z-[60] transform bg-bgPrimary transition-all duration-300 ease-in lg:bottom-0 lg:end-auto lg:block",
+                small ? "w-[90px]" : "w-[260px]",
+                small ? "" : "overflow-y-auto",
+                "drop-shadow-2xl lg:drop-shadow-none",
+                language === "ar"
+                  ? isOpen
+                    ? "max-lg:translate-x-0"
+                    : "max-lg:translate-x-full"
+                  : isOpen
+                    ? "max-lg:translate-x-0"
+                    : "max-lg:-translate-x-full"
+              )}
             >
               <div className="px-8 pt-4">
                 <Link href="/">
@@ -413,9 +536,7 @@ const { data: dataUpdate } =
               </div>
 
               <nav
-                className={`hs-accordion-group flex w-full flex-col flex-wrap p-6 ${
-                  !isOpen ? "hidden" : ""
-                } `}
+                className={`hs-accordion-group flex w-full flex-col flex-wrap p-6`}
                 data-hs-accordion-always-open
               >
                 <ul className="space-y-1.5">
@@ -443,6 +564,7 @@ const { data: dataUpdate } =
                   </div>
                   {navLinks.map((link) => (
                     <NavBarLink
+                    onClick={()=> setIsOpen(false)}
                       key={link.href}
                       href={link.href}
                       icon={link.icon}
@@ -463,56 +585,66 @@ const { data: dataUpdate } =
                         <p
                           className={`text-textPrimary ${isOpen5 ? "text-primary" : ""}`}
                         >
-                          Menu
+                          {translate("Academic", "Académique", "أكاديمي")}
                         </p>
                       )}
                     </button>
                     {isOpen5 && (
                       <ul
-                        className={`${small ? "hidden w-fit translate-x-5 whitespace-nowrap rounded-xl bg-bgPrimary p-2 group-hover:grid" : ""} mx-9 mt-2 grid gap-2 text-[14px] font-semibold`}
+                        className={`${small ? "hidden w-fit translate-x-5 whitespace-nowrap -translate-y-[100px] rounded-xl bg-bgPrimary p-2 group-hover:grid" : ""} mx-9 mt-2 grid gap-2 text-[14px] font-semibold`}
                       >
-                        <Link
-                          className={`hover:text-primary ${url === "/homework" ? "text-primary" : ""}`}
-                          href="/homework"
-                        >
-                          {" "}
-                          Homework{" "}
-                        </Link>
-                        <Link
-                          className={`hover:text-primary ${url === "/textbooks" ? "text-primary" : ""}`}
-                          href="/textbooks"
-                        >
-                          {" "}
-                          Textbooks{" "}
-                        </Link>
-                        <Link
-                          className={`hover:text-primary ${url === "/grades" ? "text-primary" : ""}`}
-                          href="/grades"
-                        >
-                          {" "}
-                          Grades{" "}
-                        </Link>
-                        <Link
-                          className={`hover:text-primary ${url === "/exam" ? "text-primary" : ""}`}
-                          href="/exam"
-                        >
-                          {" "}
-                          Exam{" "}
-                        </Link>
-                        {/* <Link
-                          className={`hover:text-primary ${url === "/exercises" ? "text-primary" : "textPrimary"}`}
-                          href="/exercises"
-                        >
-                          {" "}
-                          Exercises{" "}
-                        </Link> */}
+<Link
+      onClick={() => setIsOpen(false)}
+      className={`hover:text-primary ${
+        url === "/homework" ? "text-primary" : ""
+      }`}
+      href="/homework"
+    >
+      {translate("Homework", "Devoirs", "الواجبات")}
+    </Link>
+    <Link
+      onClick={() => setIsOpen(false)}
+      className={`hover:text-primary ${
+        url === "/textbooks" ? "text-primary" : ""
+      }`}
+      href="/textbooks"
+    >
+      {translate("Textbooks", "Manuels", "الكتب المدرسية")}
+    </Link>
+    <Link
+      onClick={() => setIsOpen(false)}
+      className={`hover:text-primary ${
+        url === "/grades" ? "text-primary" : ""
+      }`}
+      href="/grades"
+    >
+      {translate("Grades", "Notes", "الدرجات")}
+    </Link>
+    <Link
+      onClick={() => setIsOpen(false)}
+      className={`hover:text-primary ${
+        url === "/exam" ? "text-primary" : ""
+      }`}
+      href="/exam"
+    >
+      {translate("Exam", "Examen", "الامتحان")}
+    </Link>
+    <Link
+      onClick={() => setIsOpen(false)}
+      className={`hover:text-primary ${
+        url === "/questions" ? "text-primary" : ""
+      }`}
+      href="/questions"
+    >
+      {translate("Questions", "Questions", "الاسئلة")}
+    </Link>
                       </ul>
                     )}
                   </li>
                 </ul>
               </nav>
             </div>
-          )}
+          
         </div>
       </header>
     </>
