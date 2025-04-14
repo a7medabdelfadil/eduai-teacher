@@ -38,7 +38,7 @@ describe('Button', () => {
       render(<Button color="secondary">Secondary Button</Button>);
       
       const button = screen.getByRole('button');
-      expect(button).toHaveClass('bg-bgPowderBlue');
+      expect(button).toHaveClass('bg-powderBlue');
       expect(button).toHaveClass('hover:bg-textSecondary');
     });
 

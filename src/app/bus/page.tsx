@@ -21,6 +21,8 @@ import Container from "~/_components/Container";
 import "leaflet/dist/leaflet.css";
 import { IoClose, IoEye } from "react-icons/io5";
 import Button from "~/_components/Button";
+import { useBusInfo } from "~/APIs/hooks/useBus";
+import { Skeleton } from "~/components/ui/skeleton";
 
 interface FormData {
   busId: string;
@@ -100,6 +102,10 @@ const Bus: React.FC = () => {
   const [stompClient, setStompClient] = useState<Client | null>(null);
   const [markerPosition, setMarkerPosition] = useState<[number, number] | null>(
     null,
+  );
+  const busIdNumber = parseInt(formData.busId);
+  const { data: busInfo, isLoading: isBusLoading } = useBusInfo(
+    connected && formData.busId ? busIdNumber : undefined,
   );
   // New state to hold the notification data (set once on connect)
   const [notification, setNotification] = useState<NotificationData | null>(
@@ -344,8 +350,9 @@ const Bus: React.FC = () => {
     <Container>
       <div className="mx-auto w-full px-4">
         <div className="rounded-lg bg-bgPrimary p-6 shadow-lg">
-          <div className="mb-6 flex justify-between space-x-4">
-            <div className="relative">
+          <div className="mb-6 flex flex-col gap-y-4 md:flex-row md:items-end md:justify-between md:gap-x-4">
+            {/* Input field */}
+            <div className="relative w-full md:max-w-sm">
               <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
                 <BusIcon className="h-5 w-5 text-gray-400" />
               </div>
@@ -365,9 +372,10 @@ const Bus: React.FC = () => {
               />
             </div>
 
-            <div className="flex gap-4">
+            {/* Action buttons */}
+            <div className="flex flex-col gap-3 md:flex-row md:items-center md:gap-4">
               <button
-                className="inline-flex w-full items-center justify-center gap-2 rounded-lg bg-green-500 px-4 py-2 font-semibold text-white transition-colors duration-200 hover:bg-green-600"
+                className="inline-flex max-h-[40px] w-full items-center justify-center gap-2 rounded-lg bg-green-500 px-4 py-2 text-xs font-semibold text-white transition-colors duration-200 hover:bg-green-600"
                 onClick={sendData}
               >
                 <MapPin className="h-5 w-5" />
@@ -377,6 +385,7 @@ const Bus: React.FC = () => {
                     ? "تحديث الموقع"
                     : "Update Location"}
               </button>
+
               <button
                 className={`inline-flex items-center gap-2 rounded-lg px-6 py-2 font-semibold transition-colors duration-200 ${
                   connected
@@ -395,6 +404,7 @@ const Bus: React.FC = () => {
                     ? "توصيل"
                     : "Connect"}
               </button>
+
               <button
                 className={`inline-flex items-center gap-2 rounded-lg px-6 py-2 font-semibold transition-colors duration-200 ${
                   !connected
@@ -430,7 +440,7 @@ const Bus: React.FC = () => {
           <div className="relative grid grid-cols-1 gap-6">
             <div className="space-y-6">
               <div
-                style={{ height: screenHeight - 220 }}
+                style={{ height: screenHeight - 250 }}
                 className="overflow-hidden rounded-lg border border-gray-300"
               >
                 <MapContainer
@@ -546,27 +556,45 @@ const Bus: React.FC = () => {
                   ))}
                 </div>
                 <div className="mt-4 border-t pt-3">
-                  <p>
-                    <strong>Driver Name:</strong> Alaa Hasssan
-                  </p>
-                  <p>
-                    <strong>Assistant Name:</strong> Mona Gaber
-                  </p>
-                  <p>
-                    <strong>Bus No.:</strong> MS 1235
-                  </p>
-                  <p>
-                    <strong>Bus Speed:</strong> 40 km
-                  </p>
+                  {isBusLoading ? (
+                     <div className="space-y-2">
+                     <Skeleton className="h-4 w-1/2" />
+                     <Skeleton className="h-4 w-1/4" />
+                     <Skeleton className="h-4 w-1/3" />
+                     <Skeleton className="h-4 w-2/3" />
+                     <Skeleton className="h-10 w-full" />
+                   </div>
+                  ) : busInfo ? (
+                    <>
+                      <p>
+                        <strong>Driver Name:</strong> {busInfo.driverName}
+                      </p>
+                      <p>
+                        <strong>Bus No.:</strong> {busInfo.busNumber}
+                      </p>
+                      <p>
+                        <strong>Bus Speed:</strong> {busInfo.speed} km/h
+                      </p>
+                      <p>
+                        <strong>Phone:</strong> +
+                        {busInfo.phoneNumber.countryCode}{" "}
+                        {busInfo.phoneNumber.nationalNumber}
+                      </p>
 
-                  <Button
-                    className="mt-4"
-                    onClick={() => {
-                      window.open("tel:0123456789");
-                    }}
-                  >
-                    Call Driver
-                  </Button>
+                      <Button
+                        className="mt-4"
+                        onClick={() => {
+                          window.open(
+                            `tel:+${busInfo.phoneNumber.countryCode}${busInfo.phoneNumber.nationalNumber}`,
+                          );
+                        }}
+                      >
+                        Call Driver
+                      </Button>
+                    </>
+                  ) : (
+                    <p>No bus info available</p>
+                  )}
                 </div>
               </div>
             )}
