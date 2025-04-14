@@ -19,6 +19,8 @@ import { baseUrlStock } from "~/APIs/axios";
 import useLanguageStore, { useUserDataStore } from "~/APIs/store";
 import Container from "~/_components/Container";
 import "leaflet/dist/leaflet.css";
+import { IoClose, IoEye } from "react-icons/io5";
+import Button from "~/_components/Button";
 
 interface FormData {
   busId: string;
@@ -86,6 +88,7 @@ const LocationMarker: React.FC<{
 };
 
 const Bus: React.FC = () => {
+  const [showUpdatesPanel, setShowUpdatesPanel] = useState(true);
   const [myLocation, setMyLocation] = useState<[number, number] | null>(null);
   const [connected, setConnected] = useState<boolean>(false);
   const [messages, setMessages] = useState<BusLocation[]>([]);
@@ -331,6 +334,12 @@ const Bus: React.FC = () => {
     }
   }, []);
 
+  useEffect(() => {
+    if (stompClient && !connected) {
+      stompClient.activate();
+    }
+  }, [stompClient]);
+
   return (
     <Container>
       <div className="mx-auto w-full px-4">
@@ -355,9 +364,9 @@ const Bus: React.FC = () => {
                 onChange={handleInputChange}
               />
             </div>
-            
+
             <div className="flex gap-4">
-            <button
+              <button
                 className="inline-flex w-full items-center justify-center gap-2 rounded-lg bg-green-500 px-4 py-2 font-semibold text-white transition-colors duration-200 hover:bg-green-600"
                 onClick={sendData}
               >
@@ -420,7 +429,10 @@ const Bus: React.FC = () => {
 
           <div className="relative grid grid-cols-1 gap-6">
             <div className="space-y-6">
-              <div style={{ height: screenHeight - 220 }} className="overflow-hidden rounded-lg border border-gray-300">
+              <div
+                style={{ height: screenHeight - 220 }}
+                className="overflow-hidden rounded-lg border border-gray-300"
+              >
                 <MapContainer
                   center={defaultPosition}
                   zoom={13}
@@ -477,12 +489,25 @@ const Bus: React.FC = () => {
                   </p>
                 )}
               </div>
-
-              
             </div>
-
             {connected && (
-              <div style={{ maxHeight: screenHeight - 260 }} className="absolute right-5 top-5 w-[300px] z-[1000] rounded-lg bg-bgPrimary p-4">
+              <button
+                onClick={() => setShowUpdatesPanel(!showUpdatesPanel)}
+                className="absolute right-7 top-7 z-[1100] flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-white shadow-lg transition hover:bg-primaryHover"
+              >
+                {showUpdatesPanel ? (
+                  <IoClose className="h-5 w-5" />
+                ) : (
+                  <IoEye className="h-4 w-4" />
+                )}
+              </button>
+            )}
+
+            {connected && showUpdatesPanel && (
+              <div
+                style={{ maxHeight: screenHeight - 260 }}
+                className="absolute right-5 top-5 z-[1000] w-[300px] rounded-lg bg-bgPrimary p-4"
+              >
                 <h2 className="mb-4 flex items-center gap-2 text-xl font-semibold text-textPrimary">
                   <MapPin className="h-5 w-5 text-primary" />
                   {language === "fr"
@@ -519,6 +544,29 @@ const Bus: React.FC = () => {
                       </div>
                     </div>
                   ))}
+                </div>
+                <div className="mt-4 border-t pt-3">
+                  <p>
+                    <strong>Driver Name:</strong> Alaa Hasssan
+                  </p>
+                  <p>
+                    <strong>Assistant Name:</strong> Mona Gaber
+                  </p>
+                  <p>
+                    <strong>Bus No.:</strong> MS 1235
+                  </p>
+                  <p>
+                    <strong>Bus Speed:</strong> 40 km
+                  </p>
+
+                  <Button
+                    className="mt-4"
+                    onClick={() => {
+                      window.open("tel:0123456789");
+                    }}
+                  >
+                    Call Driver
+                  </Button>
                 </div>
               </div>
             )}
