@@ -13,7 +13,7 @@ import useLanguageStore from "~/APIs/store";
 import type { Student } from "~/types";
 
 const Grades = () => {
-  const { data: dataExams } = useGetAllExams();
+  const { data: dataExams, isLoading: isLoadingExams } = useGetAllExams();
   const language = useLanguageStore((state) => state.language);
   const translate = (en: string, fr: string, ar: string) => {
     return language === "fr" ? fr : language === "ar" ? ar : en;
@@ -30,6 +30,14 @@ const Grades = () => {
     setSelectedExamId(event.target.value);
   };
 
+  if (isLoadingExams) {
+    return (
+      <div className="flex w-full h-[calc(100vh-200px)] items-center justify-center gap-10">
+        <Spinner />
+      </div>
+    );
+  }
+
   return (
     <Container>
       <div className="flex w-full items-center justify-between gap-10">
@@ -38,7 +46,13 @@ const Grades = () => {
             className="flex w-full items-center gap-3 whitespace-nowrap rounded-xl bg-bgPrimary px-6 py-4 font-semibold outline-none duration-200 ease-in hover:shadow-lg"
             onChange={handleSelectExam}
           >
-            <option value="">{translate("Select Exam", "Sélectionnez un examen", "اختر الامتحان")}</option>
+            <option value="">
+              {translate(
+                "Select Exam",
+                "Sélectionnez un examen",
+                "اختر الامتحان",
+              )}
+            </option>
             {dataExams?.map((exam) => (
               <option key={exam.id} value={exam.id}>
                 {exam.examName}
@@ -47,7 +61,7 @@ const Grades = () => {
           </select>
         </div>
 
-        <div className="flex w-[300px] justify-end mx-4">
+        <div className="mx-4 flex w-[300px] justify-end">
           <Link href={"/grades/add-grades"}>
             <Button>
               <svg
@@ -74,9 +88,8 @@ const Grades = () => {
           <Box>
             <Text font={"bold"} size={"2xl"}>
               {
-                dataExams?.find(
-                  (exam) => exam.id === Number(selectedExamId)
-                )?.examName
+                dataExams?.find((exam) => exam.id === Number(selectedExamId))
+                  ?.examName
               }
             </Text>
 
@@ -85,14 +98,24 @@ const Grades = () => {
                 <Spinner />
               </div>
             ) : error ? (
-              <Text>{translate("Error fetching students", "Erreur lors de la récupération des étudiants", "حدث خطأ أثناء جلب الطلاب")}</Text>
+              <Text>
+                {translate(
+                  "Error fetching students",
+                  "Erreur lors de la récupération des étudiants",
+                  "حدث خطأ أثناء جلب الطلاب",
+                )}
+              </Text>
             ) : (
               <div className="mt-5">
                 <table className="w-full table-auto">
                   <thead>
                     <tr>
                       <th className="px-6 py-3 text-left text-xl font-bold">
-                        {translate("Student Name", "Nom de l'étudiant", "اسم الطالب")}
+                        {translate(
+                          "Student Name",
+                          "Nom de l'étudiant",
+                          "اسم الطالب",
+                        )}
                       </th>
                       <th className="px-6 py-3 text-center text-xl font-bold">
                         {translate("Grade", "Note", "الدرجة")}
@@ -104,7 +127,7 @@ const Grades = () => {
                       (student: Student) => (
                         <tr
                           key={student.studentId}
-                          className="overflow-hidden rounded-xl bg-bgSecondary border-t-8 border-bgPrimary"
+                          className="overflow-hidden rounded-xl border-t-8 border-bgPrimary bg-bgSecondary"
                         >
                           <td className="rounded-l-xl px-6 py-4 text-left">
                             {student.studentName}
@@ -127,12 +150,13 @@ const Grades = () => {
                                   : "bg-error/5"
                               } w-fit rounded-xl px-4 py-2 text-center`}
                             >
-                              {student.score ?? translate("N/A", "Indisponible", "غير متوفر")}
+                              {student.score ??
+                                translate("N/A", "Indisponible", "غير متوفر")}
                               /{dataStudentsWithGrade?.data.finalScore}
                             </span>
                           </td>
                         </tr>
-                      )
+                      ),
                     )}
                   </tbody>
                 </table>
@@ -140,7 +164,14 @@ const Grades = () => {
             )}
           </Box>
         ) : (
-          <img src="/images/exam.png" alt={translate("Exam Illustration", "Illustration de l'examen", "صورة توضيحية للامتحان")} />
+          <img
+            src="/images/exam.png"
+            alt={translate(
+              "Exam Illustration",
+              "Illustration de l'examen",
+              "صورة توضيحية للامتحان",
+            )}
+          />
         )}
       </div>
     </Container>

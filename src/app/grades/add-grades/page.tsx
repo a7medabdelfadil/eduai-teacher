@@ -33,6 +33,7 @@ const Grades = () => {
 
   const [grades, setGrades] = useState<Record<string, string>>({});
 
+
   const handleSelectExam = (event: any) => {
     setSelectedExamId(event.target.value);
   };
